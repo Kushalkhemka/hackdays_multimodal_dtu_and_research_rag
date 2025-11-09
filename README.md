@@ -137,6 +137,15 @@ mkdir -p cache attachments output
    gradle installDebug
    ```
 
+### Download Pre-built APK
+
+You can download the pre-built APK files directly:
+
+- **[DTU-Saathi-debug.apk](https://github.com/Kushalkhemka/hackdays_multimodal_dtu_and_research_rag/raw/main/DTU-Saathi-debug.apk)** - Debug build (recommended for testing)
+- **[DTU-Saathi-release-unsigned.apk](https://github.com/Kushalkhemka/hackdays_multimodal_dtu_and_research_rag/raw/main/DTU-Saathi-release-unsigned.apk)** - Release build (unsigned, requires signing for distribution)
+
+**Note**: The debug APK is ready to install. The release APK is unsigned and needs to be signed before distribution.
+
 ### n8n Workflow Configuration
 
 The system requires an n8n workflow configured with:

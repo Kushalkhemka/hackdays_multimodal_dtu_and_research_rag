@@ -9,7 +9,8 @@ android/build/
 android/.idea/
 android/local.properties
 *.iml
-*.apk
+# APK files are included in the repository for easy download
+# *.apk
 *.ap_
 
 # Cache and temporary files
