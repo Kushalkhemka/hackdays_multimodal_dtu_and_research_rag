@@ -1,0 +1,931 @@
+{
+    "name": "AI_FOR_DTU",
+    "nodes": [
+      {
+        "parameters": {
+          "url": "=https://api.mistral.ai/v1/files/{{ $json.id }}/url",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "mistralCloudApi",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -928,
+          -160
+        ],
+        "id": "d5eb5232-84f9-4a88-aef4-44c9edf3c7c0",
+        "name": "Get Signed URL",
+        "credentials": {
+          "mistralCloudApi": {
+            "id": "qczTgUV6BX1NkWhT",
+            "name": "Mistral Cloud account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.mistral.ai/v1/files",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "mistralCloudApi",
+          "sendBody": true,
+          "contentType": "multipart-form-data",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "purpose",
+                "value": "ocr"
+              },
+              {
+                "parameterType": "formBinaryData",
+                "name": "file",
+                "inputDataFieldName": "data0"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1152,
+          -160
+        ],
+        "id": "9b6a97f8-7ced-40d2-accb-cf5c580ef93b",
+        "name": "Upload to Mistral Server",
+        "credentials": {
+          "mistralCloudApi": {
+            "id": "qczTgUV6BX1NkWhT",
+            "name": "Mistral Cloud account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.mistral.ai/v1/ocr",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "mistralCloudApi",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"model\": \"mistral-ocr-latest\",\n  \"document\": {\n    \"type\": \"document_url\",\n    \"document_url\": \"{{$json.url}}\"\n  },\n  \"include_image_base64\": true\n}",
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "json"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -704,
+          -160
+        ],
+        "id": "57cf28ab-5201-4409-b24a-3e58923c0722",
+        "name": "Get the Markdown OCR",
+        "credentials": {
+          "mistralCloudApi": {
+            "id": "qczTgUV6BX1NkWhT",
+            "name": "Mistral Cloud account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "https://jumpshare.com/s/ODayCp1eClBlxkXg67Z3",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1376,
+          -64
+        ],
+        "id": "45e98976-7927-42a4-8d71-af2455a5a139",
+        "name": "Get Public PDF URL",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.mistral.ai/v1/ocr",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "mistralCloudApi",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"model\": \"mistral-ocr-latest\",\n  \"document\": {\n    \"document_url\": \"{{ $('Get Signed URL').item.json.url }}\"\n  },\n  \"bbox_annotation_format\": {\n    \"type\": \"json_schema\",\n    \"json_schema\": {\n      \"schema\": {\n        \"properties\": {\n          \"document_type\": {\n            \"title\": \"Document_Type\",\n            \"description\": \"The type of the image.\",\n            \"type\": \"string\"\n          },\n          \"short_description\": {\n            \"title\": \"Short_Description\",\n            \"description\": \"A detailed description in English describing the image.\",\n            \"type\": \"string\"\n          },\n          \"summary\": {\n            \"title\": \"Summary\",\n            \"description\": \"Extract detailed natural-language descriptions for each distinct visual element (image, chart, table, diagram, etc.) on the page. Focus on summarizing what each visual element contains or conveys.\",\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"document_type\",\n          \"short_description\",\n          \"summary\"\n        ],\n        \"title\": \"BBOXAnnotation\",\n        \"type\": \"object\",\n        \"additionalProperties\": false\n      },\n      \"name\": \"document_annotation\",\n      \"strict\": true\n    }\n  },\n  \"include_image_base64\": true\n} ",
+          "options": {
+            "redirect": {
+              "redirect": {}
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -480,
+          -160
+        ],
+        "id": "bbf2d18a-24ff-4a26-ba08-91379924b25e",
+        "name": "Get BBox Annotations",
+        "credentials": {
+          "mistralCloudApi": {
+            "id": "qczTgUV6BX1NkWhT",
+            "name": "Mistral Cloud account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "insert",
+          "tableName": {
+            "__rl": true,
+            "value": "documents",
+            "mode": "list",
+            "cachedResultName": "documents"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+        "typeVersion": 1.3,
+        "position": [
+          2464,
+          -160
+        ],
+        "id": "1a9736d4-50e7-4af6-9359-da22bbca5077",
+        "name": "Supabase Vector Store",
+        "credentials": {
+          "supabaseApi": {
+            "id": "NoWoA3SP8dxKImiU",
+            "name": "Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chunkOverlap": 200,
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+        "typeVersion": 1,
+        "position": [
+          2640,
+          272
+        ],
+        "id": "4a4c0001-be8a-4428-8a5c-58e905b2bc3e",
+        "name": "Recursive Character Text Splitter"
+      },
+      {
+        "parameters": {
+          "modelName": "models/gemini-embedding-001"
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+        "typeVersion": 1,
+        "position": [
+          2432,
+          64
+        ],
+        "id": "57fa9d25-80f2-43b8-b45b-a086a860dc60",
+        "name": "Embeddings Google Gemini",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "rvjKYCIDStB3oVkT",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonMode": "expressionData",
+          "jsonData": "={{ $('Code in JavaScript1').item.json.markdown }}",
+          "textSplittingMode": "custom",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+        "typeVersion": 1.1,
+        "position": [
+          2560,
+          64
+        ],
+        "id": "e1f63958-5562-4cbb-a2fc-2156814a2143",
+        "name": "Default Data Loader"
+      },
+      {
+        "parameters": {
+          "public": true,
+          "initialMessages": "Hi there! 👋\nI am DTU SAARTHI. How can I assist you today?",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          -1376,
+          480
+        ],
+        "id": "c67ca6d2-ef24-470b-a917-73f962bdac25",
+        "name": "When chat message received",
+        "webhookId": "5d8859d3-6877-476f-bb15-a0ed4340b98a"
+      },
+      {
+        "parameters": {
+          "options": {
+            "systemMessage": "You are a expert multimodal RAG agent for the notices, circular, research papers. \n\nYou are tasked with the answering a question using the information retrieved from the attached vector store.\n\nYour goal is to provide an accurate answer based on this information.\n\n##IMPORTANT## - If there are images provided in the retrieved information, then you should return this in markdown format.\n\nIf you cannot answer the question using the provided information, you may retry or if no information is returned from the vector store, then say \"I don't know the response\"\n\nI need clean markdown without like any metadata and I don't need output in json but need in markdown strictly\n"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          -1104,
+          480
+        ],
+        "id": "c1b1e136-cc6f-49dd-bdb6-9b3ea00f2811",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "modelName": "models/gemini-pro-latest",
+          "options": {
+            "temperature": 0.4
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+        "typeVersion": 1,
+        "position": [
+          -1152,
+          704
+        ],
+        "id": "4ac4c3ab-b42c-4331-90e9-411ab58298da",
+        "name": "Google Gemini Chat Model",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "rvjKYCIDStB3oVkT",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "contextWindowLength": 50
+        },
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1.3,
+        "position": [
+          -1024,
+          704
+        ],
+        "id": "e67694d6-3fc1-44f4-bcb9-f8d610b6682a",
+        "name": "Simple Memory"
+      },
+      {
+        "parameters": {
+          "mode": "retrieve-as-tool",
+          "toolDescription": "Vector strore containing the embedding of the research paper for semantic search and retrieval ",
+          "tableName": {
+            "__rl": true,
+            "value": "documents",
+            "mode": "list",
+            "cachedResultName": "documents"
+          },
+          "topK": 10,
+          "useReranker": true,
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+        "typeVersion": 1.3,
+        "position": [
+          -896,
+          704
+        ],
+        "id": "fed1e3c7-23ef-4eb1-9cb9-db250b965e9e",
+        "name": "Supabase Vector Store1",
+        "credentials": {
+          "supabaseApi": {
+            "id": "NoWoA3SP8dxKImiU",
+            "name": "Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "topN": 5
+        },
+        "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+        "typeVersion": 1,
+        "position": [
+          -752,
+          912
+        ],
+        "id": "7c80269b-e0cf-42db-a6ec-5c234f27c393",
+        "name": "Reranker Cohere",
+        "credentials": {
+          "cohereApi": {
+            "id": "HVJt0MYrxzU1Co8U",
+            "name": "CohereApi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelName": "models/gemini-embedding-001"
+        },
+        "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+        "typeVersion": 1,
+        "position": [
+          -880,
+          912
+        ],
+        "id": "8b6d72ac-be3c-47ac-9e50-7c5adc0f53b3",
+        "name": "Embeddings Google Gemini1",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "rvjKYCIDStB3oVkT",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "images",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -32,
+          -240
+        ],
+        "id": "14ce897b-946e-40ca-8608-f2d6282de5f4",
+        "name": "Split Images"
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "pages",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -256,
+          -240
+        ],
+        "id": "1af6508c-27fc-4a3d-8bff-70d974f4dba5",
+        "name": "Split Pages"
+      },
+      {
+        "parameters": {
+          "operation": "toBinary",
+          "sourceProperty": "base64_encoded",
+          "options": {
+            "fileName": "={{ $('Set File Name').item.json.file_name }}"
+          }
+        },
+        "type": "n8n-nodes-base.convertToFile",
+        "typeVersion": 1.1,
+        "position": [
+          640,
+          -304
+        ],
+        "id": "3629ebcd-21de-4865-aa71-a6c4527edf50",
+        "name": "Convert to File"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "928c15ca-e64e-424f-94dc-afb50ce2b6c6",
+                "name": "file_name",
+                "value": "={{ (Date.now().toString(36) +     Math.random().toString(36).substring(2, 10) +     Math.random().toString(36).substring(2, 10) +     Math.random().toString(36).substring(2, 10)).toLowerCase() }}",
+                "type": "string"
+              },
+              {
+                "id": "464fd16e-5fc8-4651-b26b-fc3c25ecd06b",
+                "name": "original_id",
+                "value": "={{ $json.id }}",
+                "type": "string"
+              },
+              {
+                "id": "2d8107e1-e883-4c04-b40e-5269a0cc5a99",
+                "name": "image_annotation",
+                "value": "={{ $json.image_annotation }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          192,
+          -240
+        ],
+        "id": "1d829677-24cf-42d8-a02e-e16643159947",
+        "name": "Set File Name"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "685366d8-302e-444f-8d66-ad549929e8fc",
+                "name": "base64_encoded",
+                "value": "={{ $('Split Images').item.json.image_base64.split(',')[1]; }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          416,
+          -304
+        ],
+        "id": "7cbb36dc-3d36-43f0-9af5-fc109afcf786",
+        "name": "Prep Base64 String"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://oexvtkmnkwtglbzwcujz.supabase.co/storage/v1/object/dtu-rag/{{ $binary.data.fileName }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "sendBody": true,
+          "contentType": "binaryData",
+          "inputDataFieldName": "data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          864,
+          -304
+        ],
+        "id": "61d85d0a-fd89-43cd-9a65-d60bae7cc62d",
+        "name": "HTTP Request",
+        "credentials": {
+          "supabaseApi": {
+            "id": "NoWoA3SP8dxKImiU",
+            "name": "Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "52d03021-932d-4fbb-b377-84689973ba70",
+                "name": "=file_name",
+                "value": "={{$json.Key.split('/')[1]}}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1088,
+          -304
+        ],
+        "id": "ad0cba9a-13dd-45d9-86d6-058ec6e81c35",
+        "name": "Set Field Name"
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "fieldsToMatchString": "file_name",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          1312,
+          -240
+        ],
+        "id": "4abb1317-3109-4e82-9d74-a756f1cb7c92",
+        "name": "Merge"
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "destinationFieldName": "uploaded_image",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          1536,
+          -240
+        ],
+        "id": "21401cb9-d59f-431b-b0e1-ed5e34681881",
+        "name": "Aggregate"
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineByPosition",
+          "options": {
+            "clashHandling": {
+              "values": {
+                "resolveClash": "preferLast"
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          1760,
+          -160
+        ],
+        "id": "d044a0ad-e157-438c-9514-1a2367eca5ad",
+        "name": "Merge image annotation with pages"
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "pages",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          1984,
+          -160
+        ],
+        "id": "08b5cb3d-21ae-4e73-a917-5f5e80f94151",
+        "name": "Split Out"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// Safely access uploaded_images from Merge1\nconst mergeItem = $('Merge image annotation with pages').item;\nconst uploadedImages = mergeItem?.json?.uploaded_image;\n\nlet markdown = $json.markdown;\nconst supabaseBaseUrl = 'https://oexvtkmnkwtglbzwcujz.supabase.co';\nconst bucketName = 'dtu-rag';\nconst fullBaseUrl = `${supabaseBaseUrl}/storage/v1/object/public/${bucketName}/`;\n\n// Only run replacement if uploadedImages is a non-empty array\nif (Array.isArray(uploadedImages) && uploadedImages.length > 0) {\n  for (const image of uploadedImages) {\n    const originalId = image.original_id;\n    const fileName = image.file_name;\n    const annotation = image.image_annotation || '';\n\n    const localMarkdownPattern = `![${originalId}](${originalId})`;\n    const hostedMarkdownWithAnnotation = `![${originalId}](${fullBaseUrl}${fileName})\\n\\n${annotation}`;\n\n    if (markdown.includes(localMarkdownPattern)) {\n      markdown = markdown.replaceAll(localMarkdownPattern, hostedMarkdownWithAnnotation);\n    }\n  }\n}\n\nreturn {\n  json: {\n    ...$json,\n    markdown\n  }\n};\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2208,
+          -160
+        ],
+        "id": "4f4f518a-aab8-4cbb-9f81-17f7f70a8168",
+        "name": "Code in JavaScript1"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "7079a786-ef55-477d-8a64-b0ad4d1d2c23",
+          "options": {
+            "binaryPropertyName": "data"
+          }
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -1376,
+          -256
+        ],
+        "id": "257e7641-5c63-423e-8194-5b3748a6f42e",
+        "name": "Webhook",
+        "webhookId": "7079a786-ef55-477d-8a64-b0ad4d1d2c23"
+      }
+    ],
+    "pinData": {},
+    "connections": {
+      "Get Signed URL": {
+        "main": [
+          [
+            {
+              "node": "Get the Markdown OCR",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upload to Mistral Server": {
+        "main": [
+          [
+            {
+              "node": "Get Signed URL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get the Markdown OCR": {
+        "main": [
+          [
+            {
+              "node": "Get BBox Annotations",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Public PDF URL": {
+        "main": [
+          [
+            {
+              "node": "Upload to Mistral Server",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get BBox Annotations": {
+        "main": [
+          [
+            {
+              "node": "Split Pages",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge image annotation with pages",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Embeddings Google Gemini": {
+        "ai_embedding": [
+          [
+            {
+              "node": "Supabase Vector Store",
+              "type": "ai_embedding",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Default Data Loader": {
+        "ai_document": [
+          [
+            {
+              "node": "Supabase Vector Store",
+              "type": "ai_document",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Recursive Character Text Splitter": {
+        "ai_textSplitter": [
+          [
+            {
+              "node": "Default Data Loader",
+              "type": "ai_textSplitter",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When chat message received": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Google Gemini Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Simple Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Supabase Vector Store1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Reranker Cohere": {
+        "ai_reranker": [
+          [
+            {
+              "node": "Supabase Vector Store1",
+              "type": "ai_reranker",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Embeddings Google Gemini1": {
+        "ai_embedding": [
+          [
+            {
+              "node": "Supabase Vector Store1",
+              "type": "ai_embedding",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          []
+        ]
+      },
+      "Split Pages": {
+        "main": [
+          [
+            {
+              "node": "Split Images",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Images": {
+        "main": [
+          [
+            {
+              "node": "Set File Name",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set File Name": {
+        "main": [
+          [
+            {
+              "node": "Prep Base64 String",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Prep Base64 String": {
+        "main": [
+          [
+            {
+              "node": "Convert to File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Convert to File": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "Set Field Name",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Field Name": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "Aggregate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate": {
+        "main": [
+          [
+            {
+              "node": "Merge image annotation with pages",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge image annotation with pages": {
+        "main": [
+          [
+            {
+              "node": "Split Out",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Out": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript1": {
+        "main": [
+          [
+            {
+              "node": "Supabase Vector Store",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Upload to Mistral Server",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "active": true,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "64800f59-d159-4afa-84b9-3ac91bf72fe0",
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "404634b4a01452fb779c9de07dbd8c39f2e74c7e8e827eb20fbe62fe0d9b0cdb"
+    },
+    "id": "DgGirFdhQu89mHEj",
+    "tags": []
+  }

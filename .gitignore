@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Android build files
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+*.iml
+*.apk
+*.ap_
+
+# Cache and temporary files
+cache/
+attachments/
+*.log
+
+# Output files (optional - you may want to keep these)
+# output/
+
+# Environment variables
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Gradle
+.gradle/
+build/
+
+# Android Studio
+*.iml
+.idea/
+local.properties
+

@@ -1,0 +1,25 @@
+{
+  "name": "dtu-saathi",
+  "version": "1.0.0",
+  "description": "DTU Notice Scraper and Telegram Notifier",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "scrape": "node scrape-all-urls.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "form-data": "^4.0.0"
+  },
+  "keywords": [
+    "dtu",
+    "scraper",
+    "telegram",
+    "notices"
+  ],
+  "author": "",
+  "license": "ISC"
+}
+
+
